@@ -24,77 +24,71 @@ async function scrapeTencentDocs() {
   await page.setViewport({ width: 1920, height: 1080 });
   await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36');
 
-  let apiData = null;
+  let allResponses = [];
 
   page.on('response', async (response) => {
     const url = response.url();
-    if (url.includes('dop-api') || url.includes('opendoc') || url.includes('get/sheet')) {
+    if (url.includes('dop-api') || url.includes('opendoc') || url.includes('get/sheet') || url.includes('export')) {
       try {
         const text = await response.text();
-        if (text.length > 200) {
-          console.log('[network] URL:', url.substring(0, 120));
-          console.log('[network] Response length:', text.length);
-          if (text.includes('initialData') || text.includes('sheetData') || text.includes('"data"')) {
-            apiData = text;
-            console.log('[network] Found spreadsheet data!');
-          }
+        if (text && text.length > 100) {
+          console.log('[net] URL:', url.substring(0, 150));
+          console.log('[net] Length:', text.length);
+          console.log('[net] First 300:', text.substring(0, 300));
+          allResponses.push({ url, text, length: text.length });
         }
       } catch (e) { }
     }
   });
 
-  console.log('[2/6] Navigating to Tencent Docs:', SHEET_URL);
+  console.log('[2/6] Navigating to:', SHEET_URL);
   await page.goto(SHEET_URL + '?opennew=1', { waitUntil: 'domcontentloaded', timeout: 30000 });
-  console.log('[2/6] Page loaded, waiting for content...');
-
+  console.log('[2/6] Page loaded, waiting...');
   await sleep(8000);
-  console.log('[3/6] Waiting complete, checking for API data...');
 
-  if (apiData) {
-    console.log('[3/6] Got data from network interception');
-    console.log('[3/6] API data length:', apiData.length);
-  } else {
-    console.log('[3/6] No API data found, trying clipboard approach...');
-  }
-
+  console.log('[3/6] Captured', allResponses.length, 'API responses');
   let csvData = '';
 
-  if (apiData) {
+  for (const resp of allResponses) {
+    console.log('[3/6] Trying response from:', resp.url.substring(0, 80));
     try {
-      const parsed = JSON.parse(apiData);
-      if (parsed.initialData) {
-        csvData = extractCSVFromInitialData(parsed.initialData);
-      } else if (parsed.data) {
-        csvData = extractCSVFromInitialData(parsed.data);
+      const parsed = JSON.parse(resp.text);
+      console.log('[3/6] JSON keys:', Object.keys(parsed).join(', '));
+
+      csvData = extractDataFromJSON(parsed);
+      if (csvData && csvData.length > 50) {
+        console.log('[3/6] Got CSV data from JSON, length:', csvData.length);
+        break;
       }
-      console.log('[4/6] Extracted CSV from API data, length:', csvData.length);
+
+      for (const key of Object.keys(parsed)) {
+        const val = parsed[key];
+        if (typeof val === 'object' && val !== null) {
+          console.log('[3/6] Checking key:', key, 'type:', Array.isArray(val) ? 'array' : 'object');
+          csvData = extractDataFromJSON(val);
+          if (csvData && csvData.length > 50) {
+            console.log('[3/6] Got CSV from key:', key, 'length:', csvData.length);
+            break;
+          }
+        }
+      }
+      if (csvData && csvData.length > 50) break;
     } catch (e) {
-      console.log('[4/6] Failed to parse API JSON, using raw data');
-      csvData = apiData;
+      if (resp.text.includes('\t') || resp.text.includes(',')) {
+        csvData = resp.text;
+        console.log('[3/6] Using raw text as CSV, length:', csvData.length);
+        break;
+      }
     }
   }
 
   if (!csvData || csvData.length < 50) {
-    console.log('[4/6] Trying clipboard approach...');
+    console.log('[4/6] Trying clipboard with xclip...');
     try {
-      const frames = page.frames();
-      console.log('[4/6] Page frames:', frames.length);
-
-      for (const frame of frames) {
-        const canvas = await frame.$('canvas');
-        if (canvas) {
-          console.log('[4/6] Found canvas in frame:', frame.url());
-          await canvas.click();
-          await sleep(500);
-          break;
-        }
-      }
-
       await page.keyboard.down('Control');
       await page.keyboard.press('a');
       await page.keyboard.up('Control');
       await sleep(500);
-
       await page.keyboard.down('Control');
       await page.keyboard.press('c');
       await page.keyboard.up('Control');
@@ -102,86 +96,74 @@ async function scrapeTencentDocs() {
 
       try {
         csvData = execSync('xclip -selection clipboard -o', { encoding: 'utf-8', timeout: 5000 });
-        console.log('[4/6] Clipboard data length:', csvData.length);
+        console.log('[4/6] xclip data length:', csvData.length);
       } catch (e) {
         console.log('[4/6] xclip failed:', e.message);
-        try {
-          csvData = execSync('xsel --clipboard --output', { encoding: 'utf-8', timeout: 5000 });
-          console.log('[4/6] xsel data length:', csvData.length);
-        } catch (e2) {
-          console.log('[4/6] xsel also failed:', e2.message);
-        }
       }
     } catch (e) {
-      console.log('[4/6] Clipboard approach failed:', e.message);
+      console.log('[4/6] Clipboard failed:', e.message);
     }
   }
 
   if (!csvData || csvData.length < 50) {
-    console.log('[5/6] Trying page.evaluate approach...');
-    try {
-      const text = await page.evaluate(() => {
-        return document.body.innerText;
-      });
-      if (text && text.length > 50) {
-        csvData = text;
-        console.log('[5/6] Got body text, length:', csvData.length);
-      }
-    } catch (e) {
-      console.log('[5/6] page.evaluate failed:', e.message);
-    }
+    console.log('[5/6] Saving all API responses for debugging...');
+    const debugData = allResponses.map(r => `=== URL: ${r.url} ===\nLength: ${r.length}\n${r.text.substring(0, 2000)}\n`).join('\n');
+    fs.writeFileSync(path.join(__dirname, 'debug-api-responses.txt'), debugData, 'utf-8');
+    console.log('[5/6] Saved to debug-api-responses.txt');
   }
 
   await browser.close();
   console.log('[6/6] Browser closed');
 
   if (!csvData || csvData.length < 50) {
-    console.error('All methods failed. No data extracted.');
-    console.error('Dumping page content for debugging...');
-    try {
-      const content = await page.content();
-      fs.writeFileSync(path.join(__dirname, 'debug-page.html'), content.substring(0, 50000), 'utf-8');
-      console.error('Page content saved to debug-page.html');
-    } catch (e) { }
-    throw new Error('Failed to extract data from Tencent Docs');
+    throw new Error('No data extracted. Check debug-api-responses.txt');
   }
 
-  console.log('[6/6] Data extracted, length:', csvData.length);
-  console.log('[6/6] First 200 chars:', csvData.substring(0, 200));
+  console.log('[6/6] Data length:', csvData.length);
+  console.log('[6/6] First 300 chars:', csvData.substring(0, 300));
 
   const accounts = parseCSV(csvData);
   console.log('[6/6] Parsed accounts:', accounts.length);
 
   if (accounts.length === 0) {
-    console.error('No accounts parsed from CSV data');
-    console.error('CSV data sample:', csvData.substring(0, 500));
     fs.writeFileSync(path.join(__dirname, 'debug-raw-data.txt'), csvData, 'utf-8');
-    console.error('Raw data saved to debug-raw-data.txt');
+    console.log('[6/6] Raw data saved to debug-raw-data.txt');
     throw new Error('No accounts parsed from data');
   }
 
   const output = generateOutput(accounts);
-  const outputPath = path.join(__dirname, 'siyao_data.js');
-  fs.writeFileSync(outputPath, output, 'utf-8');
-  console.log('[6/6] Written to', outputPath);
+  fs.writeFileSync(path.join(__dirname, 'siyao_data.js'), output, 'utf-8');
+  console.log('[6/6] Written to siyao_data.js');
 
   return accounts;
 }
 
-function extractCSVFromInitialData(data) {
-  try {
-    if (data.sheetData && data.sheetData.length) {
-      const rows = data.sheetData;
-      return rows.map(row =>
-        Array.isArray(row) ? row.map(cell => `"${cell || ''}"`).join(',') : ''
-      ).join('\n');
+function extractDataFromJSON(obj) {
+  if (!obj || typeof obj !== 'object') return '';
+
+  if (Array.isArray(obj)) {
+    if (obj.length === 0) return '';
+    const first = obj[0];
+    if (Array.isArray(first)) {
+      return obj.map(row => row.map(c => `"${c || ''}"`).join(',')).join('\n');
     }
-    if (data.initialData && data.initialData.sheetData) {
-      return extractCSVFromInitialData(data.initialData);
+    if (typeof first === 'object' && first !== null) {
+      return obj.map(row => Object.values(row).map(c => `"${c || ''}"`).join(',')).join('\n');
     }
-  } catch (e) {
-    console.log('extractCSVFromInitialData error:', e.message);
   }
+
+  for (const key of Object.keys(obj)) {
+    const val = obj[key];
+    if (Array.isArray(val) && val.length > 0) {
+      const result = extractDataFromJSON(val);
+      if (result && result.length > 50) return result;
+    }
+    if (typeof val === 'object' && val !== null) {
+      const result = extractDataFromJSON(val);
+      if (result && result.length > 50) return result;
+    }
+  }
+
   return '';
 }
 
