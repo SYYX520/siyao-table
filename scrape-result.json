@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026/9/2 14:52:12",
+  "total": 114,
+  "on_sale": 114,
+  "sources": [
+    {
+      "name": "xy商行",
+      "status": "ok",
+      "count": 26
+    },
+    {
+      "name": "h8商行",
+      "status": "ok",
+      "count": 16
+    },
+    {
+      "name": "91商行",
+      "status": "ok",
+      "count": 25
+    },
+    {
+      "name": "天稳商行",
+      "status": "ok",
+      "count": 47
+    }
+  ]
+}
