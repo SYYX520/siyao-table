@@ -1,4 +1,4 @@
-name: Auto Scrape Table Data
+name: Auto Scrape Tencent Docs
 
 on:
   schedule:
@@ -22,13 +22,21 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Run Scraper
-        run: node scraper.js
+      - name: Install Puppeteer
+        run: npm install
+
+      - name: Install Chromium
+        run: npx puppeteer browsers install chrome
+
+      - name: Scrape Tencent Docs
+        run: node puppeteer-scraper.js
+        env:
+          PUPPETEER_EXECUTABLE_PATH: /root/.cache/puppeteer/chrome/*/chrome-linux64/chrome
 
       - name: Commit and Push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add siyao_data.js scrape-result.json
-          git diff --cached --quiet || git commit -m "Auto-update table data [skip ci]"
+          git add siyao_data.js
+          git diff --cached --quiet || git commit -m "Auto-update from Tencent Docs [skip ci]"
           git push
