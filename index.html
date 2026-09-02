@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html data-page-node-id="XfGhT4m2Zu0GCVk9Y3qmsJ" lang="zh-CN">
+<head data-page-node-id="6HwqqLnLgRU7wMI8Hvpw9z">
+<!-- inject.js removed for local hosting -->
+<meta data-page-node-id="Or9AeBvfRayiFkV4Pxaxwi" charset="UTF-8">
+<meta data-page-node-id="TejJeX9iW4nK1IWIr5OGHg" content="width=device-width,initial-scale=1" name="viewport">
+<title data-page-node-id="LvvOsUIcYoIIim8RnQX0fc" data-pnid-children="TCBaXamuMyCXmvkbpNtMM2">司瑶的账号表格 - 租号表格</title>
+<link data-page-node-id="gAXWotR9slwFqpyLMB7U8D" rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='192' height='192' viewBox='0 0 192 192'><rect width='192' height='192' rx='42' fill='%23FFA500'/><text x='96' y='130' font-size='96' text-anchor='middle' dominant-baseline='central'>📋</text></svg>">
+<style data-page-node-id="rIF3EkeIK9GE1GFcHWrqqf" data-pnid-children="agKiNf6alktzWSXK1v9bog">
+/* ===== Reset & Base ===== */
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Microsoft YaHei','PingFang SC',-apple-system,BlinkMacSystemFont,sans-serif;font-size:13px;color:#595959;background:#f0f2f5}
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-thumb{background:#bbb;border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:#999}
+::-webkit-scrollbar-track{background:#f0f0f0}
+
+/* ===== Layout ===== */
+.header{background:linear-gradient(135deg,#FFD700 0%,#FFA500 100%);color:#4a3500;padding:10px 20px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.qrcode-banner{text-align:center;padding:10px 8px 6px;background:#fff;border-bottom:1px solid #f0f0f0}
+.qrcode-banner img{max-width:420px;width:100%;height:auto;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.1);display:block;margin:0 auto 6px;image-rendering:pixelated;cursor:zoom-in}
+.qrcode-banner p{margin:0;font-size:17px;font-weight:700;color:#333}
+.qr-overlay{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.8);z-index:9999;justify-content:center;align-items:center;cursor:zoom-out}
+.qr-overlay img{max-width:95vw;max-height:95vh;width:auto;height:auto;border-radius:8px;image-rendering:pixelated}
+.header h1{font-size:18px;font-weight:600;white-space:nowrap}
+.header-right{display:flex;align-items:center;gap:12px}
+.bj-clock{background:rgba(255,255,255,.5);padding:4px 12px;border-radius:6px;font-size:13px;font-family:'Consolas','Monaco',monospace;white-space:nowrap}
+.refresh-btn{background:rgba(74,53,0,.15);border:1px solid rgba(74,53,0,.35);color:#4a3500;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:13px;white-space:nowrap;transition:background .2s}
+.refresh-btn:hover{background:rgba(74,53,0,.25)}
+.refresh-btn:disabled{opacity:.6;cursor:not-allowed}
+
+/* ===== Filter Bar ===== */
+.filter-bar{background:#fff;padding:10px 16px;border-bottom:1px solid #e8e8e8;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;position:sticky;top:46px;z-index:90}
+.filter-group{display:flex;align-items:center;gap:4px}
+.filter-label{font-size:12px;color:#8c8c8c;white-space:nowrap}
+.filter-bar select,.filter-bar input[type="number"]{height:28px;border:1px solid #d9d9d9;border-radius:4px;padding:0 6px;font-size:12px;color:#595959;background:#fff;outline:none}
+.filter-bar select{min-width:80px;cursor:pointer}
+.filter-bar select:hover,.filter-bar input:hover{border-color:#409eff}
+.filter-bar select:focus,.filter-bar input:focus{border-color:#409eff;box-shadow:0 0 0 2px rgba(24,144,255,.1)}
+.filter-bar input[type="number"]{width:60px}
+.range-sep{color:#bfbfbf;font-size:12px}
+.search-box{flex:1;min-width:140px;height:28px;border:1px solid #d9d9d9;border-radius:4px;padding:0 10px;font-size:12px;outline:none}
+.search-box:focus{border-color:#409eff;box-shadow:0 0 0 2px rgba(24,144,255,.1)}
+.skin-select{min-width:120px}
+
+/* ===== Stats Bar ===== */
+.stats-bar{background:#fff;padding:8px 16px;border-bottom:1px solid #e8e8e8;display:flex;gap:20px;align-items:center;font-size:12px;color:#8c8c8c}
+.stats-bar .stat-item{display:flex;align-items:center;gap:4px}
+.stats-bar .stat-value{font-weight:600;color:#262626;font-size:14px}
+.stats-bar .stat-value.on-sale{color:#52c41a}
+.stats-bar .stat-value.sold{color:#ff4d4f}
+.status-msg{flex:1;font-size:12px;color:#8c8c8c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ===== Table ===== */
+.table-wrap{overflow-x:auto;overflow-y:auto;max-height:calc(100vh - 180px);position:relative}
+table{border-collapse:collapse;width:max-content;min-width:100%;font-size:12px}
+thead th{position:sticky;top:0;z-index:10;background:linear-gradient(135deg,#FFF4D6,#FFE4B5);border-bottom:2px solid #E8C547;border-right:1px solid #f0e6c0;padding:8px 6px;text-align:center;font-weight:600;color:#4a3500;white-space:nowrap;font-size:12px}
+thead th.fixed-left{position:sticky;left:0;z-index:15}
+thead th.fixed-right{position:sticky;right:0;z-index:15}
+thead th.col-sort{cursor:pointer;user-select:none}
+thead th.col-sort:hover{background:#f0f0f0}
+thead th.col-sort::after{content:' ⇅';font-size:10px;color:#bbb}
+thead th.col-sort.sort-asc::after{content:' ↑';color:#1890ff;font-size:12px}
+thead th.col-sort.sort-desc::after{content:' ↓';color:#1890ff;font-size:12px}
+tbody td{border-bottom:1px solid #f0f0f0;border-right:1px solid #f5f5f5;padding:6px;text-align:center;white-space:nowrap;line-height:1.4}
+tbody td.fixed-left{position:sticky;left:0;z-index:5;background:#fff}
+tbody td.fixed-right{position:sticky;right:0;z-index:5;background:#fff}
+tbody tr:hover td{background:#f5f9ff}
+tbody tr:hover td.fixed-left{background:#f5f9ff}
+tbody tr:hover td.fixed-right{background:#f5f9ff}
+tbody tr.sold-row td{opacity:.5}
+tbody tr.sold-row td.fixed-left{opacity:.5}
+
+/* col backgrounds */
+.col-green-bg{background:#f6ffed!important}
+tbody tr:hover .col-green-bg{background:#eefbe2!important}
+
+/* ===== Cell Styles ===== */
+.wid-cell{cursor:pointer;line-height:1.4;text-align:center}
+.wid-cell .wid-text{font-weight:600;font-size:13px;color:#262626}
+.wid-cell .wid-copy{font-size:11px;color:#8c8c8c}
+.wid-cell:hover .wid-text{color:#1890ff}
+.special-badge{display:inline-block;background:linear-gradient(135deg,#FFAA44,#FF7744);color:#fff;font-size:9px;padding:1px 4px;border-radius:3px;margin-right:3px;vertical-align:middle}
+
+/* Rank tags */
+.rank-tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600}
+.rank-0{background:#f5f5f5;color:#8c8c8c}
+.rank-1{background:#e8d5b0;color:#8b6914}
+.rank-2{background:#e0e0e0;color:#666}
+.rank-3{background:#fff3cd;color:#856404}
+.rank-4{background:#e6e6fa;color:#5b5b9f}
+.rank-5{background:#d4edda;color:#155724}
+.rank-6{background:#d1ecf1;color:#0c5460}
+.rank-7{background:#f8d7da;color:#721c24}
+
+/* Ratio pills */
+.ratio-pill{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
+.ratio-50{background:#fff1f0;color:#ff4d4f;border:1px solid #ffa39e}
+.ratio-45{background:#fff7e6;color:#fa8c16;border:1px solid #ffd591}
+.ratio-40{background:#fffbe6;color:#d4b106;border:1px solid #ffe58f}
+.ratio-35{background:#f6ffed;color:#52c41a;border:1px solid #b7eb8f}
+.ratio-30{background:#e6f7ff;color:#1890ff;border:1px solid #91d5ff}
+.ratio-default{background:#f5f5f5;color:#8c8c8c;border:1px solid #d9d9d9}
+
+/* Pills (stamina, weight) */
+.pill{display:inline-block;padding:1px 6px;border-radius:3px;font-size:11px}
+.pill-high{background:#e6f7ff;color:#1890ff;border:1px solid #91d5ff;font-weight:600}
+.pill-default{background:#f5f5f5;color:#8c8c8c;border:1px solid #d9d9d9}
+
+/* Safe box tags */
+.safe-box-tag{display:inline-block;padding:1px 6px;border-radius:3px;font-size:11px;font-weight:600}
+.safe-4{background:#f5f5f5;color:#8c8c8c}
+.safe-6{background:#e6f7ff;color:#1890ff}
+.safe-9{background:#f6ffed;color:#52c41a}
+
+/* Login badges */
+.login-qq{background:#e6f7ff;color:#1890ff;padding:1px 6px;border-radius:3px;font-size:11px}
+.login-wx{background:#f6ffed;color:#52c41a;padding:1px 6px;border-radius:3px;font-size:11px}
+.login-unknown{background:#f5f5f5;color:#8c8c8c;padding:1px 6px;border-radius:3px;font-size:11px}
+
+/* Price cells */
+.price-cell{font-weight:600;color:#262626}
+.price-total{color:#52c41a;font-weight:700}
+
+/* Skin cells */
+.skin-knife{color:#fa8c16;font-weight:600;font-size:11px;line-height:1.5}
+.skin-red{color:#ff4d4f;font-weight:600;font-size:11px;line-height:1.5}
+.skin-gold{color:#13c2c2;font-weight:600;font-size:11px;line-height:1.5}
+
+/* Remark */
+.remark-cell{max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:help}
+.remark-cell:hover{color:#1890ff}
+
+/* Time range */
+.time-range{font-size:11px;color:#595959}
+
+/* Toast */
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.75);color:#fff;padding:8px 20px;border-radius:6px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+
+/* Progress */
+.progress-bar{position:fixed;top:46px;left:0;right:0;height:3px;background:transparent;z-index:95}
+.progress-bar .bar{height:100%;background:#1890ff;width:0;transition:width .3s}
+
+/* Empty state */
+.empty-state{text-align:center;padding:60px 20px;color:#8c8c8c;font-size:14px}
+.empty-state .icon{font-size:48px;margin-bottom:10px}
+
+/* ===== Floating Scrollbar ===== */
+.float-scroll{position:fixed;bottom:0;left:0;right:0;height:16px;background:#e8e8e8;border-top:1px solid #d0d0d0;z-index:88;display:none}
+.float-track{position:relative;height:100%;overflow:hidden}
+.float-thumb{position:absolute;top:1px;left:0;height:14px;background:#1890ff;border-radius:7px;cursor:grab;min-width:30px;opacity:.8;transition:opacity .2s}
+.float-thumb:hover{opacity:1}
+.float-thumb:active{cursor:grabbing;opacity:1}
+
+/* ===== Responsive ===== */
+@media(max-width:768px){
+  .header h1{font-size:14px}
+  .header-right{gap:6px}
+  .bj-clock{font-size:11px;padding:3px 8px}
+  .refresh-btn{padding:4px 10px;font-size:11px}
+  .filter-bar{top:42px;padding:8px 10px;gap:6px 8px}
+  .filter-label{font-size:11px}
+  .filter-bar select{min-width:70px;font-size:11px}
+  .search-box{min-width:100px;font-size:11px}
+  .skin-select{min-width:100px}
+  .stats-bar{padding:6px 10px;gap:12px;font-size:11px}
+  .stats-bar .stat-value{font-size:12px}
+  .table-wrap{max-height:calc(100vh - 220px)}
+  thead th{padding:6px 4px;font-size:11px}
+  tbody td{padding:4px 3px;font-size:11px}
+}
+</style>
+</head>
+<body data-page-node-id="w1llwS9XvZX0HhwkiwKhRt">
+
+<div data-page-node-id="d5TfcKHrEuAGPKcKBCQKPl" class="header">
+  <h1 data-page-node-id="P6fbF8KHoNJxpb9HZQeway"><!--pnid:eIjYmrYQ0uT8adjA36OEZT-->🎯 司瑶的账号表格</h1>
+  <div data-page-node-id="p9FPX9aK7LdsbIAwjsF07R" class="header-right">
+    <div data-page-node-id="Qhwd8d5rxMXM6IqiQPhDsI" class="bj-clock" id="bjClock"><!--pnid:5kfN0EsV9MSw21I5LdAb7J-->--</div>
+    <button data-page-node-id="C4cC2TYyM0reTuLLTRWLEe" class="refresh-btn" id="refreshBtn" onclick="liveScrape(false)"><!--pnid:kRV7aI61MC70dSac11OvIK-->🔄 刷新数据</button>
+  </div>
+</div>
+
+<div data-page-node-id="XiNaxINBa9VGrG5yq3Q2jx" class="progress-bar" id="progressBar" style="display:none"><div data-page-node-id="hChhMSyMNs85Vn7vy26Ox8" class="bar" id="progressBarFill"></div></div>
+
+<div data-page-node-id="vXgXEL4Br76DDUQLYIIk0c" class="filter-bar">
+  <div data-page-node-id="F8JXjOvmjw7fYrzxWYmuG9" class="filter-group">
+    <span data-page-node-id="1qMJf4mYzqju6XaxaufI9a" class="filter-label"><!--pnid:5Gl5S0lun9X19mE2ZMHaB3-->纯币(M)</span>
+    <input data-page-node-id="xYllUbDjj8CmiApnLaHzbu" id="huffMin" onchange="renderTable()" placeholder="最小" type="number">
+    <span data-page-node-id="NqRsNum6KUu7S5qinEDA09" class="range-sep"><!--pnid:gRg741N6PhEYR4rLY75MN8-->~</span>
+    <input data-page-node-id="ENTFZU5E4Pp7qgvcZPntEj" id="huffMax" onchange="renderTable()" placeholder="最大" type="number">
+  </div>
+  <div data-page-node-id="e7ko8vs0eeUORDDMQOAzwd" class="filter-group">
+    <span data-page-node-id="FSAA2cXpLtRso2Hcd0Daw5" class="filter-label"><!--pnid:qmb3b1RClhYikl5qInM9kN-->比例</span>
+    <input data-page-node-id="ZcNpqTWl4YO6Kc9gddiJ5a" id="ratioMin" onchange="renderTable()" placeholder="最小" type="number">
+    <span data-page-node-id="8Oc15d9ydA8l1yvGlNAAM8" class="range-sep"><!--pnid:yumn8V7fJiI5Roat6Fa8V3-->~</span>
+    <input data-page-node-id="LzOzbn8HabhviJuARogZ3X" id="ratioMax" onchange="renderTable()" placeholder="最大" type="number">
+  </div>
+  <div data-page-node-id="MGJQ57sTzCvbESKcmvTxf5" class="filter-group">
+    <span data-page-node-id="viFX7CjsRlHFzg2fromuRf" class="filter-label"><!--pnid:XwJEzrEJ3CsCJ4rTFmpoTd-->安全箱</span>
+    <select data-page-node-id="jV6r9MH0YDB8DRPvaUaKVa" id="safeBoxFilter" onchange="renderTable()">
+      <option data-page-node-id="ebPBELeVxd96gvTIXGMHRp" value><!--pnid:F84kFqv1GF8YIFNy4PeKvt-->全部</option>
+      <option data-page-node-id="B4tvikDSO0sp2axk4MKrYB" value="9"><!--pnid:DsN5jTdoASBfXb90acmyZg-->顶级(3*3)</option>
+      <option data-page-node-id="O5BYC5Ig21eK5DhBSr6jo9" value="6"><!--pnid:mtPD1iv6VeA3eKHe30zimd-->高级(2*3)</option>
+      <option data-page-node-id="Yeh5bWWjK5gHtUX0YFNJaB" value="4"><!--pnid:8iECpbxbPoiMbt0R7kits1-->进阶(2*2)</option>
+    </select>
+  </div>
+  <div data-page-node-id="vW5VZ6Jr4PxwNiRcn18RIE" class="filter-group">
+    <span data-page-node-id="SgKzj6Mdj1FCjgwsm5XuFn" class="filter-label"><!--pnid:OtWX8T3QPqF2rJ80ly4LTA-->体力</span>
+    <select data-page-node-id="eGjVTv7EpAHtYGgPipJRHT" id="staminaFilter" onchange="renderTable()">
+      <option data-page-node-id="BkkdQ0D1zCL50A0QCjJ2UL" value><!--pnid:2UgegZAyzizbnffwqvmQdT-->全部</option>
+      <option data-page-node-id="SheaBWSwEOdVJ0CKKeNsL8" value="9"><!--pnid:aj5CZ76lGv7PNh4H7OBfkJ-->9级</option>
+      <option data-page-node-id="TNiBSOLP6Xarah0pfBzllT" value="7"><!--pnid:sPhcmCWxmsdKnpF7l5X0TB-->7级</option>
+      <option data-page-node-id="4WScdKQwfAv7xn4enLqDRx" value="6"><!--pnid:d33Admc7ee8TXMuKp3MnDC-->6级</option>
+      <option data-page-node-id="JFSZ8rPo5WDc60xNdJrBKb" value="5"><!--pnid:KA13tF42FvOUESKDCG0Rgt-->5级</option>
+    </select>
+  </div>
+  <div data-page-node-id="K7EvjUkrxgs3j0DBJQrMKO" class="filter-group">
+    <span data-page-node-id="1UDptPLORcmr8cvuuEznMw" class="filter-label"><!--pnid:35Mk66c1UmqbaecBK4stpx-->负重</span>
+    <select data-page-node-id="W5Exm38u9kDjiWhGJlxfoM" id="weightFilter" onchange="renderTable()">
+      <option data-page-node-id="Yl9VMTu33xSRQGyAsEuP5o" value><!--pnid:h90j0pmkRdPHAY35l0vCYs-->全部</option>
+      <option data-page-node-id="MGjiaQ4CWCBReDk0kvY7lL" value="9"><!--pnid:CjuTVlC4x5BVHIUmd9BrGs-->9级</option>
+      <option data-page-node-id="ZAxI9EgkWkvH8R0XGdKWpi" value="7"><!--pnid:LzaAyAkPQ4OSmRCJtsGyuX-->7级</option>
+      <option data-page-node-id="fZ29QCLMj5lsrzAXEEnYSH" value="6"><!--pnid:dKgGgHn6FbFDQROaMQLdv3-->6级</option>
+      <option data-page-node-id="qrpQwXPFhPlBYnurhn1V0w" value="5"><!--pnid:hvRwcjTJYfF1LdWVYupFcn-->5级</option>
+    </select>
+  </div>
+  <div data-page-node-id="BwO5oWIwF8zCEcVG6z3AyD" class="filter-group">
+    <span data-page-node-id="orMSrkfJpyE8cCnK5O96GI" class="filter-label"><!--pnid:vUH13mJBJAnewfBAITqgGk-->登录</span>
+    <select data-page-node-id="Iyple6Vg99kGLQuEBBWUd4" id="loginFilter" onchange="renderTable()">
+      <option data-page-node-id="para2IP1PW93MOZfUaSs6E" value><!--pnid:fpOlLUyTb3IEUylCS4uokI-->全部</option>
+      <option data-page-node-id="7yZCCS51WB9Lv5kcDcRQjE" value="QQ扫码"><!--pnid:MfaR9eAx2z7vrtDpZ9VLN7-->QQ扫码</option>
+      <option data-page-node-id="LN8dmkSCE6t9SSowsLSBE5" value="微信扫码"><!--pnid:JFn5sFYOSwmJ5w29X14z7O-->微信扫码</option>
+      <option data-page-node-id="uyXejCCDJPseiAHzO63V78" value="QQ账密"><!--pnid:z8v1mJAijM71SF7IdFvYgM-->QQ账密</option>
+    </select>
+  </div>
+  <div data-page-node-id="UuoDzKkpYdOSAeKavdjkdn" class="filter-group">
+    <span data-page-node-id="4klXSxGpEzXQGQ2JSd3eze" class="filter-label"><!--pnid:AsvTN2ejZ86krpiYcr9q4z-->刀皮</span>
+    <select data-page-node-id="41FKoKMd387RRFPvHSgCLg" class="skin-select" id="knifeSkinFilter" onchange="renderTable()">
+      <option data-page-node-id="WxzjsXYXWvFJExR1oJGPX1" value><!--pnid:WLDAmu6Iu1zO5QnYXb6Dd0-->全部刀皮</option>
+      <option data-page-node-id="L4jYtVfNxygA9TKsjQcM0L" value="has"><!--pnid:FWkug4m8ksxQudGdxKwlJi-->有刀皮</option>
+      <option data-page-node-id="FrU2PJMQJSfvKkFSjJbVWV" value="none"><!--pnid:OQOkTNWmr5NpdwOIjIP3Fx-->无刀皮</option>
+    </select>
+  </div>
+  <div data-page-node-id="1S3QKGc2AIVcUg9EjKgyEs" class="filter-group">
+    <span data-page-node-id="buAunc6jv4aFhdnf2mS7Ei" class="filter-label"><!--pnid:VcG7YbDf3CV2ziav9Y036Z-->人物皮</span>
+    <select data-page-node-id="rqjuYtwoBwlYuu988J1qQ8" class="skin-select" id="charSkinFilter" onchange="renderTable()">
+      <option data-page-node-id="LBXQot5Isbs80hkLRlp5Tn" value><!--pnid:x7vYa6kCR73XDdGnPyvUM9-->全部皮肤</option>
+      <option data-page-node-id="JJsFfS6rKXPagpQV0j0Bsq" value="has_char"><!--pnid:2Ch2OMivvqmYmJyq4NTllj-->有干员皮</option>
+      <option data-page-node-id="nj64TdHF59tRmOt1CGc1ce" value="has_weapon"><!--pnid:i2B8FMHj1KR7Lfy0A2ZvDE-->有武器皮</option>
+      <option data-page-node-id="80lsAgbmZoIZzLWWfiKvpK" value="has_any"><!--pnid:afxtC5TPYyhsO2J0ruStK6-->有任意皮肤</option>
+      <option data-page-node-id="DcX8GGaRWeYLIHEllxKS28" value="no_skin"><!--pnid:3ged95rkd6vaFGAvW76bas-->无皮肤</option>
+    </select>
+  </div>
+  <div data-page-node-id="lqyBYRBGaGkLL5oqCmwFgR" class="filter-group">
+    <span data-page-node-id="sy8mpuyXZc6fvnIs8UtWYl" class="filter-label"><!--pnid:pSkZhRfhUzDovk7zK1gA4W-->排序</span>
+    <select data-page-node-id="Ys2j5vgA0VDGDgQBeGO7UT" id="sortFilter" onchange="renderTable()">
+      <option data-page-node-id="zHajt1heLBBARMwVJfFF02" value><!--pnid:IeC94Mumt4pgPFiIva5KY3-->默认(在售优先)</option>
+      <option data-page-node-id="npGoaSYGXPaJCwfys9ut8q" value="ratio_desc"><!--pnid:WtnqTS8swgxq2n5ozGKShc-->比例 高→低</option>
+      <option data-page-node-id="FSNcoZL7JKKaBYFxkfVYS7" value="ratio_asc"><!--pnid:PamlObrjN5auZwqR81sOtC-->比例 低→高</option>
+      <option data-page-node-id="8zDSMvm4hnk2IPxeTUk5sM" value="huff_desc"><!--pnid:Sac1iNOyK9SsblGkUlZ7a5-->纯币 高→低</option>
+      <option data-page-node-id="0AX1XVIV7SnBwrDT4nz7rw" value="huff_asc"><!--pnid:xgocF3MZqIRKXXEd4TWKvJ-->纯币 低→高</option>
+      <option data-page-node-id="J2JZAN40YuhCaI1w3JOaz1" value="price_desc"><!--pnid:wm1IHS5pDwi2Z6RVbnZu5K-->纯币价 高→低</option>
+      <option data-page-node-id="GmVfGkZEatNkcHpQrK2Y77" value="price_asc"><!--pnid:0mmD4UngaAKeJLdeZUjWQm-->纯币价 低→高</option>
+      <option data-page-node-id="FociM54uRBBb5EyCa1USBQ" value="total_desc"><!--pnid:VCqiB5g0rM4LjU2mI2AoTS-->总租金 高→低</option>
+      <option data-page-node-id="blZLpLpsF3gQSAqQzpxnnp" value="total_asc"><!--pnid:hAlI0OT73wJatWmY2gjqfp-->总租金 低→高</option>
+      <option data-page-node-id="1n4fugHLecYUPhjwRE7pAn" value="kd_desc"><!--pnid:f2Pd2UrNGptzzY6K6dCE65-->KD 高→低</option>
+      <option data-page-node-id="XVyU0ERw7TN7VUyDrqRnuC" value="kd_asc"><!--pnid:Me5SDf3jVt0DSoPw2IY6Wi-->KD 低→高</option>
+      <option data-page-node-id="9eJgYwRyuZa2ELDmRlLNwP" value="rank_desc"><!--pnid:0AILzNzFYDPnGnZRB6capi-->段位 高→低</option>
+      <option data-page-node-id="URkMQ53a8h3Wg4ICglYVZH" value="rank_asc"><!--pnid:uC6Z6D1kxmueAKoELICv9x-->段位 低→高</option>
+      <option data-page-node-id="hehroDP7uOBySqjieHLkSo" value="rent_desc"><!--pnid:hLMDFlHOpzoUJT6nsQkXEk-->租期 高→低</option>
+      <option data-page-node-id="pTM8f2DyVEtyE5lioqUnrM" value="rent_asc"><!--pnid:96rmG4VAFQxrFyYUtjlUbE-->租期 低→高</option>
+    </select>
+  </div>
+  <input data-page-node-id="s8fApn2oOBABwxEQwAHzCD" class="search-box" id="searchBox" oninput="renderTable()" placeholder="搜索编号/段位/常用地/备注..." type="text">
+</div>
+
+<div data-page-node-id="3ZzjjtSJGzSFW9C7q3tWnx" class="stats-bar">
+  <div data-page-node-id="zOgKut2b5ZVZkkyIpNFUjr" class="stat-item"><!--pnid:ITYvGHjLJUUnBx8ROJdI6k-->在售 <span data-page-node-id="VbC9K5XWTyDOtLTmNdiCs9" class="stat-value on-sale" id="statOnSale"><!--pnid:2CVHQ7IaFq0pnhjP1pkpxU-->0</span></div>
+  <div data-page-node-id="skaRAgxiXqlOuuxMpxwVld" class="stat-item"><!--pnid:vrsddnctoZMQv6UStvPpLn-->已售 <span data-page-node-id="x4inDx9liIT8yiLm11GHo3" class="stat-value sold" id="statSold"><!--pnid:GNFtoPK1ivwhrDOYgRMZcS-->0</span></div>
+  <div data-page-node-id="7QkNmbHpADkMg8hA8qvpsz" class="stat-item"><!--pnid:6JWLjXWzu7X65Pc6NXVdAj-->最高比例 <span data-page-node-id="Fq9fXDVxKFvHi0gQI3DtNk" class="stat-value" id="statMaxRatio"><!--pnid:vhpOGfCYhWtPkI0raFVvgW-->-</span></div>
+  <div data-page-node-id="yroe6MhRLdJ659I8dOA3o6" class="stat-item"><!--pnid:e2q7kcCybWzPImY7LC9FHX-->更新 <span data-page-node-id="p0DdPYbUTs2tijBNogZdrZ" id="statLastUpdate"><!--pnid:x1W6Xb6g7WTOLcWzEYBkuC-->-</span></div>
+  <div data-page-node-id="7HvBl9ZeAjTC5Dis88a282" class="status-msg" id="statusMsg"></div>
+</div>
+
+<div data-page-node-id="diY3SMFclSc3bWBEVL1jsU" class="table-wrap" id="tableWrap">
+  <table data-page-node-id="SIYhLMiEtX6myOEswB9lPb" id="rentalTable">
+    <thead data-page-node-id="ebQdyFNLhEYjql6OTHQybU">
+      <tr data-page-node-id="UuJh1e3PQhR2w7SuAUO85V">
+        <th data-page-node-id="nM7QHAhVCxS2aEbQ95JNKH" class="fixed-left" style="min-width:100px"><!--pnid:Gf9FBU3QvMm0dEjpNQWAEi-->编号</th>
+        <th data-page-node-id="yhf4HcoOCuhNXavw13dsyN" style="min-width:100px"><!--pnid:t4VC8eOhh0qn1HawiuT0Vo-->可扫码时间</th>
+        <th data-page-node-id="OVsmpE3iWlMHT176t65WbS" style="min-width:70px"><!--pnid:vuarcQVkg4Bwoeb5M0It2Z-->常用地</th>
+        <th data-page-node-id="4wu7J0Aa5bTiPyHyqiUjjL" style="min-width:80px"><!--pnid:FHpMntnyQDjrbZ8Ht0XFPv-->登录方式</th>
+        <th data-page-node-id="NJGqCVA3VYiOYVdJZIEMt1" style="min-width:70px"><!--pnid:kW14f7grX6gaxl5Cl31or8-->段位</th>
+        <th data-page-node-id="t5dAdhPKUbi7cEEmCKewqT" class="col-sort" data-sort="huff" style="min-width:70px"><!--pnid:Kb3xzvGNZn60UBtNN8rkOl-->纯币(M)</th>
+        <th data-page-node-id="PeSpKurjCRv0F3iTfAqfjL" class="col-sort" data-sort="ratio" style="min-width:60px"><!--pnid:8KfP3by2fQMJoZU3OXDZbq-->比例</th>
+        <th data-page-node-id="OFcFasMLvXks51QYWNMGZS" style="min-width:50px"><!--pnid:MKWEoP1yL7TX9UrPZLOfeB-->等级</th>
+        <th data-page-node-id="PNbtuJ1PiQyEuyjPgiaClr" style="min-width:55px"><!--pnid:NWPssKI2dXF9oFdjRcuc4n-->体力</th>
+        <th data-page-node-id="0kJDXcMUe96FAwcq9sik17" style="min-width:55px"><!--pnid:JzPdMT4eOwSYFV4XRGs3sv-->负重</th>
+        <th data-page-node-id="0KcZqayqzTjq4FkCTgGFQ6" class="col-sort" data-sort="kd" style="min-width:60px"><!--pnid:V5Nc3F7CqIhiGp2KTf6UnW-->绝密KD</th>
+        <th data-page-node-id="xRvZn2vZwmYaYKPWgBdyci" style="min-width:90px"><!--pnid:SifgDJSr21M6SB2n0oi7po-->赛季安全箱</th>
+        <th data-page-node-id="6feonPJFdRgwOOQWPWzsN4" style="min-width:60px"><!--pnid:wM4ghU4lzCq6NLOMEWcX8E-->体验卡</th>
+        <th data-page-node-id="xlwmcoAWcgAbCeP5vJoAvY" class="col-sort" data-sort="awm" style="min-width:55px"><!--pnid:ctjCPtXG0yVyLFPJuwC6xg-->AWM</th>
+        <th data-page-node-id="7M5MfYdjckrH2TRvXg1qz4" class="col-sort" data-sort="helmet" style="min-width:50px"><!--pnid:rGWkP7eh80NcrMIJWYPkBb-->6头</th>
+        <th data-page-node-id="ccnKQ2TrX9GNnsQUNIChHs" class="col-sort" data-sort="armor" style="min-width:50px"><!--pnid:aY6nEtU7lAEtXTaCDHaR8q-->6甲</th>
+        <th data-page-node-id="rZn6AsVmr2RpdFfdARQo1f" style="min-width:80px"><!--pnid:sAoldPqJ6oaOYf6iB5g9Rk-->拥有刀皮</th>
+        <th data-page-node-id="SJitYdP5r3umav9aBiSPKm" style="min-width:120px"><!--pnid:WrHAcEppjWSgQ5YTWAvUam-->干员皮肤</th>
+        <th data-page-node-id="4Knw0XvUloDZf4W00P9IKs" style="min-width:100px"><!--pnid:cgke6s4FEC4Ye8C3mDmX3i-->备注</th>
+        <th data-page-node-id="7vERVAKbZdGtPxXAo40GZs" class="fixed-right col-sort" data-sort="sale_price" style="min-width:80px"><!--pnid:7QftXWSLQfVJXVmHxDF4Rf-->纯币价</th>
+        <th data-page-node-id="QIFN1fvyyHkSxzQ3TpuYHi" class="fixed-right col-sort" data-sort="equi_rent" style="min-width:80px"><!--pnid:jE7HY6UZItlrHv64Bv6Yf8-->装备价</th>
+        <th data-page-node-id="33jF2Gjsow6iIiEIXLq2dA" class="fixed-right col-green-bg col-sort" data-sort="total_price" style="min-width:90px"><!--pnid:hYWKz4EbazIvOihR75EDSC-->总租金</th>
+      </tr>
+    </thead>
+    <tbody data-page-node-id="2HvzJrI6xCCEpmeav6Urwj" id="rentalBody">
+      <tr data-page-node-id="jIaaQZAeGf9dsJJXHDYwZ3"><td data-page-node-id="R2F2nzfKknDjAwwo49kpWr" class="empty-state" colspan="23"><div data-page-node-id="2ngntz1BfEKlKktUdHy5L2" class="icon"><!--pnid:6V4bmOmAqbKTL81oH5qCr6-->⏳</div><!--pnid:rjaeQjYVEOeyyxy0xyICbP-->加载中...</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div data-page-node-id="ZZAMC6zS8Y7KCvWkKX74JV" class="float-scroll" id="floatScroll">
+  <div data-page-node-id="H90xN8AncNeymcyDpQBsU0" class="float-track" id="floatTrack">
+    <div data-page-node-id="9ClFPt5sipfEAgLWnPtHIK" class="float-thumb" id="floatThumb"></div>
+  </div>
+</div>
+
+<div data-page-node-id="w1PUGbUzU0cDhaYJnC2psc" class="toast" id="toast"></div>
+
+<script data-page-node-id="x3LM3bsO6tlKZnsY7602Aw">
+/* Inlined empty data - self-contained for online deployment */
+window.SCRAPED_RENTAL_DATA = [];
+</script>
+<script data-page-node-id="X3IFXSpY2NFklKtajCHMwJ" data-pnid-children="XJ3XY0Y8Mr4t1XxK4fXQm5">
+/* ===== Data & Maps ===== */
+var rentalData=[];
+var _scraping=false;
+
+var SKIN_MAP={1:"信条",2:"影锋",4:"北极星",5:"黑海",6:"怜悯",7:"赤霄",44:"暗星",46:"龙牙",53:"坠星者",54:"挽歌",
+8:"维什戴尔",9:"蚀金玫瑰",10:"水墨云图",11:"午夜邮差",12:"天际线",43:"凌霄戍卫",51:"威龙金皮-蛟龙特战队",52:"威龙金皮-吴彦祖",
+19:"威龙-铁面判官",21:"红狼-电锯惊魂",47:"电锯",48:"处刑者",
+22:"M7棱镜攻势(优)",23:"M4棱镜攻势(优)",24:"K416-命运(优)",25:"SCAR-电玩(优)",26:"腾龙-气象感应(优)",27:"AUG-气象感应(优)",28:"QBZ95-王牌之剑(优)",29:"Vctor-美杜莎(优)",31:"M250-电玩(优)",32:"MP7-电玩(优)",33:"M250-电玩(极)",34:"M7-棱镜攻势(极)",35:"MP7-电玩(极)",36:"Vctor-美杜莎(极)",37:"M4棱镜攻势(极)",38:"K416-命运(极)",39:"SCAR-电玩(极)",40:"腾龙-气象感应(极)",41:"AUG-气象感应(极)",42:"QBZ95-王牌之剑(极)",49:"ASval巨浪(优)",50:"ASval巨浪(极)",55:"Kc17-造物纪元(优)",56:"Kc17-造物纪元(极)",57:"AKM-群星(优)",58:"AKM-群星(极)"};
+
+var RANK_MAP={0:"无段位",1:"青铜",2:"白银",3:"黄金",4:"铂金",5:"钻石",6:"黑鹰",7:"巅峰"};
+var RANK_ORDER={"无段位":0,"无":0,"青铜":1,"白银":2,"黄金":3,"铂金":4,"钻石":5,"黑鹰":6,"巅峰":7};
+var SAFE_BOX_MAP={4:"进阶(2*2)",6:"高级(2*3)",9:"顶级(3*3)"};
+var LOGIN_MAP={1:"QQ扫码",2:"微信扫码",3:"QQ账密"};
+
+var SKIN_CATEGORIES={
+  knife:[
+    {id:1,name:'信条'},{id:2,name:'影锋'},{id:4,name:'北极星'},{id:5,name:'黑海'},
+    {id:6,name:'怜悯'},{id:7,name:'赤霄'},{id:44,name:'暗星'},{id:46,name:'龙牙'},
+    {id:53,name:'坠星者'},{id:54,name:'挽歌'}
+  ],
+  gold:[
+    {id:19,name:'威龙-铁面判官'},{id:21,name:'红狼-电锯惊魂'},
+    {id:47,name:'电锯'},{id:48,name:'处刑者'}
+  ],
+  red:[
+    {id:8,name:'维什戴尔'},{id:9,name:'蚀金玫瑰'},{id:10,name:'水墨云图'},
+    {id:11,name:'午夜邮差'},{id:12,name:'天际线'},{id:43,name:'凌霄戍卫'},
+    {id:51,name:'威龙金皮-蛟龙特战队'},{id:52,name:'威龙金皮-吴彦祖'}
+  ],
+  weapon:[
+    {id:22,name:'M7棱镜攻势(优)'},{id:23,name:'M4棱镜攻势(优)'},{id:24,name:'K416-命运(优)'},
+    {id:25,name:'SCAR-电玩(优)'},{id:26,name:'腾龙-气象感应(优)'},{id:27,name:'AUG-气象感应(优)'},
+    {id:28,name:'QBZ95-王牌之剑(优)'},{id:29,name:'Vctor-美杜莎(优)'},{id:31,name:'M250-电玩(优)'},
+    {id:32,name:'MP7-电玩(优)'},{id:33,name:'M250-电玩(极)'},{id:34,name:'M7-棱镜攻势(极)'},
+    {id:35,name:'MP7-电玩(极)'},{id:36,name:'Vctor-美杜莎(极)'},{id:37,name:'M4棱镜攻势(极)'},
+    {id:38,name:'K416-命运(极)'},{id:39,name:'SCAR-电玩(极)'},{id:40,name:'腾龙-气象感应(极)'},
+    {id:41,name:'AUG-气象感应(极)'},{id:42,name:'QBZ95-王牌之剑(极)'},{id:49,name:'ASval巨浪(优)'},
+    {id:50,name:'ASval巨浪(极)'},{id:55,name:'Kc17-造物纪元(优)'},{id:56,name:'Kc17-造物纪元(极)'},
+    {id:57,name:'AKM-群星(优)'},{id:58,name:'AKM-群星(极)'}
+  ]
+};
+
+var REMOTE_SOURCES=[
+  {name:"xy商行",domain:"xy.jqka.cc"},
+  {name:"h8商行",domain:"h8.jqka.cc"},
+  {name:"91商行",domain:"91.jqka.cc"},
+  {name:"天稳商行",domain:"tj.jqka.cc"}
+];
+
+var CORS_PROXIES=[
+  function(url){return 'https://proxy.cors.sh/'+url},
+  function(url){return 'https://corsproxy.io/?url='+encodeURIComponent(url)},
+  function(url){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(url)}
+];
+
+/* ===== DB (localStorage) ===== */
+var DB={
+  get:function(k,def){try{var v=localStorage.getItem('rn_'+k);return v?JSON.parse(v):def}catch(e){return def}},
+  set:function(k,v){try{localStorage.setItem('rn_'+k,JSON.stringify(v))}catch(e){}}
+};
+
+/* ===== Helpers ===== */
+function esc(s){return String(s==null?'':s).replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+function skinName(id){return SKIN_MAP[id]||('ID:'+id)}
+function toast(msg){var el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(function(){el.classList.remove('show')},2500)}
+function ratioClass(r){
+  if(r>=50)return 'ratio-50';
+  if(r>=45)return 'ratio-45';
+  if(r>=40)return 'ratio-40';
+  if(r>=35)return 'ratio-35';
+  if(r>=30)return 'ratio-30';
+  return 'ratio-default';
+}
+function formatTimeRange(r){
+  if(!r||r==='-')return '-';
+  var m=r.match(/(\d+)点-(\d+)点/);
+  if(m)return m[1]+':00-'+m[2]+':00';
+  return r;
+}
+function getProvince(region){
+  if(!region)return '-';
+  return region.split(/[- ]/)[0];
+}
+function copyText(text){
+  if(navigator.clipboard){
+    navigator.clipboard.writeText(text).then(function(){toast('已复制: '+text)}).catch(function(){fallbackCopy(text)});
+  }else{fallbackCopy(text)}
+}
+function fallbackCopy(text){
+  var ta=document.createElement('textarea');
+  ta.value=text;document.body.appendChild(ta);ta.select();
+  try{document.execCommand('copy');toast('已复制: '+text)}catch(e){toast('复制失败')}
+  document.body.removeChild(ta);
+}
+
+/* ===== Skin formatters ===== */
+function formatKnifeSkin(r){
+  var names=r.knife_skin_names||[];
+  if(!names.length)return '<span style="color:#bfbfbf">-</span>';
+  var full=names.join(', ');
+  return '<span class="skin-knife" title="'+esc(full)+'">'+esc(names[0])+(names.length>1?' +' +(names.length-1):'')+'</span>';
+}
+function formatOperatorSkin(r){
+  var red=r.red_skin_names||[];
+  var gold=r.gold_skin_names||[];
+  var weapon=r.weapon_skin_names||[];
+  var total=red.length+gold.length+weapon.length;
+  if(total===0)return '<span style="color:#bfbfbf">-</span>';
+  var parts=[];
+  if(red.length){parts.push('<span class="skin-red">'+red.map(function(n){return esc(n)}).join('<br>')+'</span>')}
+  if(gold.length){parts.push('<span class="skin-gold">'+gold.map(function(n){return esc(n)}).join('<br>')+'</span>')}
+  if(weapon.length){parts.push('<span style="color:#1890ff;font-size:11px">'+weapon.map(function(n){return esc(n)}).join('<br>')+'</span>')}
+  return '<div style="line-height:1.5">'+parts.join('<br>')+'</div>';
+}
+
+/* ===== Init Skin Filters ===== */
+function initSkinFilters(){
+  var knifeSel=document.getElementById('knifeSkinFilter');
+  if(knifeSel){
+    var og=document.createElement('optgroup');
+    og.label='── 选择刀皮 ──';
+    SKIN_CATEGORIES.knife.forEach(function(s){
+      var opt=document.createElement('option');
+      opt.value='k_'+s.id;
+      opt.textContent=s.name;
+      og.appendChild(opt);
+    });
+    knifeSel.appendChild(og);
+  }
+  var charSel=document.getElementById('charSkinFilter');
+  if(charSel){
+    var goldG=document.createElement('optgroup');
+    goldG.label='金色干员皮';
+    SKIN_CATEGORIES.gold.forEach(function(s){
+      var opt=document.createElement('option');opt.value='g_'+s.id;opt.textContent=s.name;goldG.appendChild(opt);
+    });
+    charSel.appendChild(goldG);
+    var redG=document.createElement('optgroup');
+    redG.label='红色干员皮';
+    SKIN_CATEGORIES.red.forEach(function(s){
+      var opt=document.createElement('option');opt.value='r_'+s.id;opt.textContent=s.name;redG.appendChild(opt);
+    });
+    charSel.appendChild(redG);
+    var weaponG=document.createElement('optgroup');
+    weaponG.label='武器皮';
+    SKIN_CATEGORIES.weapon.forEach(function(s){
+      var opt=document.createElement('option');opt.value='w_'+s.id;opt.textContent=s.name;weaponG.appendChild(opt);
+    });
+    charSel.appendChild(weaponG);
+  }
+}
+
+/* ===== Load static data ===== */
+function loadStaticData(){
+  if(typeof window.SCRAPED_RENTAL_DATA!=='undefined'&&window.SCRAPED_RENTAL_DATA.length){
+    rentalData=window.SCRAPED_RENTAL_DATA;
+    DB.set('rental',rentalData);
+    if(window.SCRAPED_STATS){
+      DB.set('rental_stats',window.SCRAPED_STATS);
+    }
+    console.log('Loaded '+rentalData.length+' accounts from scraped_data.js');
+  }
+}
+
+/* ===== Render Table ===== */
+var _currentSort=null;
+
+function renderTable(){
+  var body=document.getElementById('rentalBody');
+  var data=rentalData.slice();
+
+  /* Filters */
+  var huffMin=document.getElementById('huffMin').value;
+  var huffMax=document.getElementById('huffMax').value;
+  var ratioMin=document.getElementById('ratioMin').value;
+  var ratioMax=document.getElementById('ratioMax').value;
+  var sbf=document.getElementById('safeBoxFilter').value;
+  var stf=document.getElementById('staminaFilter').value;
+  var wf=document.getElementById('weightFilter').value;
+  var lf=document.getElementById('loginFilter').value;
+  var kf=document.getElementById('knifeSkinFilter').value;
+  var cf=document.getElementById('charSkinFilter').value;
+  var sortV=document.getElementById('sortFilter').value;
+  var search=document.getElementById('searchBox').value.trim().toLowerCase();
+
+  if(huffMin)data=data.filter(function(r){return (r.huff||0)>=+huffMin});
+  if(huffMax)data=data.filter(function(r){return (r.huff||0)<=+huffMax});
+  if(ratioMin)data=data.filter(function(r){return (r.ratio||0)>=+ratioMin});
+  if(ratioMax)data=data.filter(function(r){return (r.ratio||0)<=+ratioMax});
+  if(sbf)data=data.filter(function(r){
+    var sb=r.safe_box||'';
+    if(sbf==='9')return sb.indexOf('顶级')>=0||sb.indexOf('3*3')>=0;
+    if(sbf==='6')return sb.indexOf('高级')>=0||sb.indexOf('2*3')>=0;
+    if(sbf==='4')return sb.indexOf('进阶')>=0||sb.indexOf('2*2')>=0;
+    return false;
+  });
+  if(stf)data=data.filter(function(r){return String(r.stamina||0)===stf});
+  if(wf)data=data.filter(function(r){return String(r.weight_capacity||0)===wf});
+  if(lf)data=data.filter(function(r){return r.login_type===lf});
+  if(kf==='has')data=data.filter(function(r){return (r.knife_skin_names||[]).length>0});
+  else if(kf==='none')data=data.filter(function(r){return (r.knife_skin_names||[]).length===0});
+  else if(kf&&kf.indexOf('k_')===0){var kid=kf.substring(2);data=data.filter(function(r){return (r.knife_skin||[]).some(function(x){return String(x)===kid})})}
+  if(cf==='has_char')data=data.filter(function(r){return (r.gold_skin_names||[]).length>0||(r.red_skin_names||[]).length>0});
+  else if(cf==='has_weapon')data=data.filter(function(r){return (r.weapon_skin_names||[]).length>0});
+  else if(cf==='has_any')data=data.filter(function(r){return (r.gold_skin_names||[]).length>0||(r.red_skin_names||[]).length>0||(r.weapon_skin_names||[]).length>0});
+  else if(cf==='no_skin')data=data.filter(function(r){return (r.gold_skin_names||[]).length===0&&(r.red_skin_names||[]).length===0&&(r.weapon_skin_names||[]).length===0});
+  else if(cf&&cf.indexOf('g_')===0){var gid=cf.substring(2);data=data.filter(function(r){return (r.gold_skin||[]).some(function(x){return String(x)===gid})})}
+  else if(cf&&cf.indexOf('r_')===0){var rid=cf.substring(2);data=data.filter(function(r){return (r.red_skin||[]).some(function(x){return String(x)===rid})})}
+  else if(cf&&cf.indexOf('w_')===0){var wid=cf.substring(2);data=data.filter(function(r){return (r.weapon_skin||[]).some(function(x){return String(x)===wid})})}
+  if(search){
+    data=data.filter(function(r){
+      var s=JSON.stringify(r).toLowerCase();
+      return s.indexOf(search)>=0;
+    });
+  }
+
+  /* Sort */
+  if(sortV){
+    var parts=sortV.split('_');
+    var field=parts[0],dir=parts[1];
+    var mult=dir==='desc'?-1:1;
+    data.sort(function(a,b){
+      var av,bv;
+      if(field==='ratio'){av=a.ratio||0;bv=b.ratio||0}
+      else if(field==='huff'){av=a.huff||0;bv=b.huff||0}
+      else if(field==='price'){av=a.sale_price||0;bv=b.sale_price||0}
+      else if(field==='total'){av=a.total_price||0;bv=b.total_price||0}
+      else if(field==='kd'){av=a.kd||0;bv=b.kd||0}
+      else if(field==='rank'){av=RANK_ORDER[a.rank]||0;bv=RANK_ORDER[b.rank]||0}
+      else if(field==='rent'){av=a.rent_days||0;bv=b.rent_days||0}
+      else if(field==='awm'){av=a.awm||0;bv=b.awm||0}
+      else if(field==='helmet'){av=a.helmet||0;bv=b.helmet||0}
+      else if(field==='armor'){av=a.armor||0;bv=b.armor||0}
+      else if(field==='sale_price'){av=a.sale_price||0;bv=b.sale_price||0}
+      else if(field==='equi_rent'){av=a.equi_rent||0;bv=b.equi_rent||0}
+      else if(field==='total_price'){av=a.total_price||0;bv=b.total_price||0}
+      else{av=0;bv=0}
+      return (av-bv)*mult;
+    });
+  }else{
+    data.sort(function(a,b){
+      if(a.status!==b.status)return a.status==='在售'?-1:1;
+      return (b.ratio||0)-(a.ratio||0);
+    });
+  }
+
+  /* Render rows */
+  if(!data.length){
+    body.innerHTML='<tr><td colspan="23" class="empty-state"><div class="icon">📭</div>暂无数据</td></tr>';
+  }else{
+    body.innerHTML=data.map(function(r){
+      var isSold=r.status==='已售下架';
+      var rankVal=r.rank_val!=null?r.rank_val:0;
+      var loginHtml;
+      var lt=r.login_type||'';
+      if(lt.indexOf('QQ')>=0)loginHtml='<span class="login-qq">'+esc(lt)+'</span>';
+      else if(lt.indexOf('微信')>=0)loginHtml='<span class="login-wx">'+esc(lt)+'</span>';
+      else loginHtml='<span class="login-unknown">'+esc(lt||'未知')+'</span>';
+
+      var specialBadge=r.is_special===1?'<span class="special-badge">特价</span>':'';
+      var widText=r.wid||r.sale_user||'-';
+      var kfVal=r.kf||'';
+      var copyVal=kfVal?kfVal+'-'+widText:widText;
+
+      return '<tr class="'+(isSold?'sold-row':'')+'">'+
+        '<td class="fixed-left"><div class="wid-cell" onclick="copyText(\''+esc(copyVal)+'\')">'+
+          specialBadge+'<div class="wid-text">'+esc(widText)+'</div>'+
+          '<div class="wid-copy">📋 点击复制</div></div></td>'+
+        '<td><span class="time-range">'+esc(formatTimeRange(r.time_range))+'</span></td>'+
+        '<td>'+esc(getProvince(r.login_region))+'</td>'+
+        '<td>'+loginHtml+'</td>'+
+        '<td><span class="rank-tag rank-'+rankVal+'">'+esc(r.rank||'无段位')+'</span></td>'+
+        '<td>'+(r.huff||0)+'</td>'+
+        '<td><span class="ratio-pill '+ratioClass(r.ratio||0)+'">'+(r.ratio||0)+'</span></td>'+
+        '<td>'+(r.level||'-')+'</td>'+
+        '<td><span class="pill '+(r.stamina>=7?'pill-high':'pill-default')+'">'+(r.stamina||0)+'级</span></td>'+
+        '<td><span class="pill '+(r.weight_capacity>=7?'pill-high':'pill-default')+'">'+(r.weight_capacity||0)+'级</span></td>'+
+        '<td>'+(r.kd!=null?r.kd:'-')+'</td>'+
+        '<td><span class="safe-box-tag safe-'+(r.safe_box&&r.safe_box.indexOf('3*3')>=0?'9':r.safe_box&&r.safe_box.indexOf('2*3')>=0?'6':r.safe_box&&r.safe_box.indexOf('2*2')>=0?'4':'0')+'">'+esc(r.safe_box||'-')+'</span></td>'+
+        '<td>'+(r.is_exp_card>0?(r.is_exp_card+'张'):'-')+'</td>'+
+        '<td>'+(r.awm>0?r.awm:'<span style="color:#bfbfbf">-</span>')+'</td>'+
+        '<td>'+(r.helmet>0?r.helmet:'<span style="color:#bfbfbf">-</span>')+'</td>'+
+        '<td>'+(r.armor>0?r.armor:'<span style="color:#bfbfbf">-</span>')+'</td>'+
+        '<td>'+formatKnifeSkin(r)+'</td>'+
+        '<td>'+formatOperatorSkin(r)+'</td>'+
+        '<td><div class="remark-cell" title="'+esc(r.remark||'')+'">'+esc(r.remark||'-')+'</div></td>'+
+        '<td class="fixed-right price-cell">'+(r.sale_price!=null?'¥'+r.sale_price.toFixed(2):'-')+'</td>'+
+        '<td class="fixed-right">'+(r.equi_rent!=null?'¥'+r.equi_rent.toFixed(2):'-')+'</td>'+
+        '<td class="fixed-right col-green-bg price-total">¥'+(r.total_price||0).toFixed(2)+'</td>'+
+      '</tr>';
+    }).join('');
+  }
+
+  /* Stats */
+  var onSale=rentalData.filter(function(r){return r.status==='在售'}).length;
+  var sold=rentalData.filter(function(r){return r.status==='已售下架'}).length;
+  var maxRatio=data.length?Math.max.apply(null,data.filter(function(r){return r.status==='在售'}).map(function(r){return r.ratio||0})):'-';
+  document.getElementById('statOnSale').textContent=onSale;
+  document.getElementById('statSold').textContent=sold;
+  document.getElementById('statMaxRatio').textContent=maxRatio||'-';
+
+  /* Sort indicators */
+  document.querySelectorAll('th.col-sort').forEach(function(th){
+    th.classList.remove('sort-asc','sort-desc');
+    var s=th.dataset.sort;
+    if(sortV){
+      var sp=sortV.split('_');
+      if(sp[0]===s){
+        th.classList.add(sp[1]==='desc'?'sort-desc':'sort-asc');
+      }
+    }
+  });
+
+  /* Float scroll */
+  syncFloatScroll();
+}
+
+/* ===== Live Scrape ===== */
+async function liveScrape(silent){
+  if(_scraping){if(!silent)toast('正在抓取中，请稍候...');return}
+  _scraping=true;
+  var btn=document.getElementById('refreshBtn');
+  var prog=document.getElementById('progressBar');
+  var progFill=document.getElementById('progressBarFill');
+  var status=document.getElementById('statusMsg');
+  if(btn){btn.disabled=true;btn.textContent='⏳ 抓取中...'}
+  if(prog){prog.style.display='block';progFill.style.width='10%'}
+
+  /* Try local server first */
+  try{
+    if(!silent&&status)status.textContent='正在刷新数据... 20%';
+    if(progFill)progFill.style.width='20%';
+    var resp=await fetch('/api/refresh',{method:'POST',headers:{'Content-Type':'application/json'}});
+    if(resp.ok){
+      var result=await resp.json();
+      if(result.code===200){
+        rentalData=result.data||[];
+        DB.set('rental',rentalData);
+        DB.set('rental_last_refresh',result.timestamp);
+        renderTable();
+        if(status)status.innerHTML='✅ '+result.timestamp+' | 在售'+result.stats.on_sale+'条'+(result.stats.sold?'，已售'+result.stats.sold+'条':'');
+        if(!silent)toast('已更新 '+result.stats.on_sale+' 条在售数据');
+        updateLastRefresh(result.timestamp);
+        if(btn){btn.disabled=false;btn.textContent='🔄 刷新数据'}
+        if(prog){progFill.style.width='100%';setTimeout(function(){prog.style.display='none'},800)}
+        _scraping=false;
+        return;
+      }
+    }
+    throw new Error('Server returned '+resp.status);
+  }catch(e){
+    console.log('Local server unavailable, trying remote...');
+  }
+
+  /* Try CORS proxy */
+  try{
+    if(!silent&&status)status.textContent='正在刷新数据... 30%';
+    if(progFill)progFill.style.width='30%';
+    var remoteResult=await liveScrapeRemote(silent,status,progFill);
+    if(btn){btn.disabled=false;btn.textContent='🔄 刷新数据'}
+    if(prog){progFill.style.width='100%';setTimeout(function(){prog.style.display='none'},800)}
+    _scraping=false;
+    return;
+  }catch(e){
+    console.log('Remote scrape failed:',e.message);
+  }
+
+  /* Fallback to static data */
+  if(typeof window.SCRAPED_RENTAL_DATA!=='undefined'&&window.SCRAPED_RENTAL_DATA.length){
+    rentalData=window.SCRAPED_RENTAL_DATA;
+    renderTable();
+    var onSale=rentalData.filter(function(r){return r.status==='在售'}).length;
+    if(status)status.textContent='已加载静态数据 '+rentalData.length+' 条（在售'+onSale+'）';
+    if(!silent)toast('已加载 '+rentalData.length+' 条数据');
+  }else{
+    if(status)status.textContent='❌ 抓取失败，请确保服务器运行或检查网络';
+    if(!silent)toast('抓取失败');
+  }
+  if(btn){btn.disabled=false;btn.textContent='🔄 刷新数据'}
+  if(prog){prog.style.display='none'}
+  _scraping=false;
+}
+
+async function _fetchViaProxy(proxyIdx,apiUrl,postBody){
+  var errors=[];
+  for(var i=proxyIdx;i<CORS_PROXIES.length;i++){
+    try{
+      var proxyUrl=CORS_PROXIES[i](apiUrl);
+      var opts={method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(postBody)};
+      var resp=await fetch(proxyUrl,opts);
+      if(!resp.ok){errors.push('proxy'+i+':HTTP'+resp.status);continue}
+      var data=await resp.json();
+      return data;
+    }catch(e){errors.push('proxy'+i+':'+e.message)}
+  }
+  throw new Error(errors.join('; '));
+}
+
+function _parseSkinFe(skinVal){
+  if(!skinVal||skinVal==='None'||skinVal===null)return [];
+  if(Array.isArray(skinVal))return skinVal;
+  if(typeof skinVal==='string')return skinVal.split(',').map(function(s){return s.trim()}).filter(Boolean);
+  return [];
+}
+function _skinNamesFe(ids){return ids.map(function(id){return SKIN_MAP[id]||('ID:'+id)})}
+function _parseEquiFe(equiJsonStr){
+  var result={helmet:0,armor:0,awm:0};
+  if(!equiJsonStr)return result;
+  try{
+    var data=typeof equiJsonStr==='string'?JSON.parse(equiJsonStr):equiJsonStr;
+    for(var k in data){
+      if(k==='-999')continue;
+      var name=data[k].name||'';
+      var count=data[k].count||0;
+      if(name.indexOf('6级头')>=0)result.helmet=count;
+      else if(name.indexOf('6级甲')>=0)result.armor=count;
+      else if(name.indexOf('AWM')>=0||name.indexOf('awm')>=0)result.awm=count;
+    }
+  }catch(e){}
+  return result;
+}
+
+function _formatAccountFe(acc,sourceName,domain){
+  var equi=_parseEquiFe(acc.game_buy_equi_json);
+  var timeRange='';
+  if(acc.game_time_range_start!=null&&acc.game_time_range_end!=null){
+    timeRange=acc.game_time_range_start+'点-'+acc.game_time_range_end+'点';
+  }
+  var rankVal=acc.game_rank||0;
+  var rankText=RANK_MAP[rankVal]||'无段位';
+  var loginVal=acc.login_type||0;
+  var loginText=LOGIN_MAP[loginVal]||'未知';
+  var safeBoxVal=acc.game_safe_box||0;
+  var safeBoxText=SAFE_BOX_MAP[safeBoxVal]||String(safeBoxVal);
+  var salePrice=acc.game_sale_price||0;
+  var deposit=acc.game_sale_deposit||0;
+  var equiRent=acc.game_sale_equi_rental_fee||0;
+  var total=Math.round((salePrice+equiRent)*100)/100;
+  var knifeIds=_parseSkinFe(acc.game_special_knife_skin);
+  var weaponIds=_parseSkinFe(acc.game_weapon_skin);
+  var goldIds=_parseSkinFe(acc.game_character_gold_skin);
+  var redIds=_parseSkinFe(acc.game_character_red_skin);
+  var nowStr=new Date().toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false});
+  return {
+    wid:acc.sale_user||'',kf:acc.kf||'',source:sourceName,domain:domain,status:'在售',
+    ratio:acc.game_sale_ratio||0,huff:acc.game_huff||0,
+    rank:rankText,rank_val:rankVal,level:acc.game_level||0,kd:acc.game_kd||0,
+    rent_days:acc.game_rent_days||0,time_range:timeRange,login_type:loginText,
+    login_region:acc.login_region||'',safe_box:safeBoxText,
+    stamina:acc.game_stamina||0,weight_capacity:acc.game_weight_capacity||0,
+    sale_price:salePrice,deposit:deposit,equi_rent:equiRent,total_price:total,
+    helmet:equi.helmet,armor:equi.armor,awm:equi.awm,
+    knife_skin:knifeIds,weapon_skin:weaponIds,gold_skin:goldIds,red_skin:redIds,
+    knife_skin_names:_skinNamesFe(knifeIds),weapon_skin_names:_skinNamesFe(weaponIds),
+    gold_skin_names:_skinNamesFe(goldIds),red_skin_names:_skinNamesFe(redIds),
+    remark:acc.remark||'',is_special:acc.is_special_price||0,is_exp_card:acc.game_exp_card||0,
+    last_seen:nowStr,first_seen:nowStr
+  };
+}
+
+async function liveScrapeRemote(silent,statusEl,progFill){
+  var allAccounts=[];
+  var sourceResults=[];
+  var totalSources=REMOTE_SOURCES.length;
+  var FILTER_CONDITIONS=[
+    {label:'6格7体7负',game_safe_box:6,game_stamina:7,game_weight_capacity:7},
+    {label:'9格7体6负',game_safe_box:9,game_stamina:7,game_weight_capacity:6},
+    {label:'9格7体7负',game_safe_box:9,game_stamina:7,game_weight_capacity:7}
+  ];
+  var totalSteps=totalSources*FILTER_CONDITIONS.length;
+  var stepIdx=0;
+  for(var si=0;si<totalSources;si++){
+    var src=REMOTE_SOURCES[si];
+    var sourceAccounts=[];
+    var sourceOk=false;
+    for(var ci=0;ci<FILTER_CONDITIONS.length;ci++){
+      var cond=FILTER_CONDITIONS[ci];
+      stepIdx++;
+      var pct=Math.round(stepIdx/totalSteps*100);
+      if(statusEl)statusEl.textContent='正在刷新数据... '+pct+'%';
+      if(progFill)progFill.style.width=(30+Math.round(stepIdx/totalSteps*60))+'%';
+      var page=1;
+      var condAccounts=[];
+      var proxyIdx=0;
+      try{
+        while(page<=50){
+          var postBody={page:page,size:100,game_safe_box:cond.game_safe_box,game_stamina:cond.game_stamina,game_weight_capacity:cond.game_weight_capacity,sort_field:'game_sale_ratio',sort_order:'desc'};
+          var apiUrl='https://'+src.domain+'/api/game/account/list';
+          var data=await _fetchViaProxy(proxyIdx,apiUrl,postBody);
+          var items=data.data&&data.data.result?data.data.result:(data.data&&data.data.list?data.data.list:[]);
+          if(!items||!items.length)break;
+          for(var j=0;j<items.length;j++){
+            condAccounts.push(_formatAccountFe(items[j],src.name,src.domain));
+          }
+          var totalPages=data.data&&data.data.totalPages?data.data.totalPages:1;
+          if(page>=totalPages)break;
+          page++;
+        }
+        sourceAccounts=sourceAccounts.concat(condAccounts);
+        sourceOk=true;
+      }catch(e){
+        /* condition failed, try next */
+      }
+    }
+    var seen={};
+    var unique=sourceAccounts.filter(function(a){if(seen[a.wid])return false;seen[a.wid]=true;return true});
+    unique.sort(function(a,b){return (b.ratio||0)-(a.ratio||0)});
+    allAccounts=allAccounts.concat(unique);
+    sourceResults.push({name:src.name,status:sourceOk?'ok':'error',count:unique.length,error:sourceOk?'':'抓取失败'});
+  }
+  if(!allAccounts.length)throw new Error('所有网站抓取失败');
+
+  rentalData=allAccounts;
+  DB.set('rental',rentalData);
+  var nowStr=new Date().toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false});
+  DB.set('rental_last_refresh',nowStr);
+
+  var onSale=rentalData.filter(function(r){return r.status==='在售'}).length;
+
+  if(statusEl)statusEl.innerHTML='✅ '+nowStr+' | 在售'+onSale+'条';
+  renderTable();
+  updateLastRefresh(nowStr);
+  if(!silent)toast('已抓取 '+onSale+' 条在售数据');
+  return true;
+}
+
+function updateLastRefresh(ts){
+  var el=document.getElementById('statLastUpdate');
+  if(el&&ts)el.textContent=ts;
+}
+
+/* ===== Beijing Clock ===== */
+function initBeijingClock(){
+  var el=document.getElementById('bjClock');
+  if(!el)return;
+  function pad(n){return n<10?'0'+n:''+n}
+  function tick(){
+    var now=new Date();
+    var utcMs=now.getTime()+now.getTimezoneOffset()*60000;
+    var bj=new Date(utcMs+8*3600000);
+    var y=bj.getFullYear();
+    var mo=pad(bj.getMonth()+1);
+    var d=pad(bj.getDate());
+    var h=pad(bj.getHours());
+    var mi=pad(bj.getMinutes());
+    var s=pad(bj.getSeconds());
+    var week=['日','一','二','三','四','五','六'][bj.getDay()];
+    el.textContent=y+'-'+mo+'-'+d+' '+h+':'+mi+':'+s+' 周'+week;
+  }
+  tick();
+  setInterval(tick,1000);
+}
+
+/* ===== Floating Scrollbar ===== */
+var _floatScroll=document.getElementById('floatScroll');
+var _floatTrack=document.getElementById('floatTrack');
+var _floatThumb=document.getElementById('floatThumb');
+var _tableWrap=document.getElementById('tableWrap');
+var _isDragging=false;
+
+function syncFloatScroll(){
+  var table=document.getElementById('rentalTable');
+  if(!table||!_tableWrap)return;
+  var sw=table.scrollWidth;
+  var cw=_tableWrap.clientWidth;
+  if(sw>cw+5){
+    _floatScroll.style.display='block';
+    var ratio=cw/sw;
+    var thumbW=Math.max(30,cw*ratio);
+    _floatThumb.style.width=thumbW+'px';
+    var maxScroll=sw-cw;
+    var scrollRatio=_tableWrap.scrollLeft/maxScroll;
+    var thumbMax=cw-thumbW;
+    _floatThumb.style.left=(thumbMax*scrollRatio)+'px';
+  }else{
+    _floatScroll.style.display='none';
+  }
+}
+
+_floatThumb.addEventListener('mousedown',startDrag);
+_floatThumb.addEventListener('touchstart',startDrag,{passive:false});
+var _dragStartX=0;
+var _dragStartThumbLeft=0;
+function startDrag(e){
+  e.preventDefault();
+  _isDragging=true;
+  var x=e.touches?e.touches[0].clientX:e.clientX;
+  _dragStartX=x;
+  _dragStartThumbLeft=parseFloat(_floatThumb.style.left)||0;
+  document.addEventListener('mousemove',onDrag);
+  document.addEventListener('mouseup',endDrag);
+  document.addEventListener('touchmove',onDrag,{passive:false});
+  document.addEventListener('touchend',endDrag);
+}
+function onDrag(e){
+  if(!_isDragging)return;
+  e.preventDefault();
+  var x=e.touches?e.touches[0].clientX:e.clientX;
+  var deltaX=x-_dragStartX;
+  var table=document.getElementById('rentalTable');
+  var sw=table.scrollWidth;
+  var cw=_tableWrap.clientWidth;
+  var thumbW=parseFloat(_floatThumb.style.width)||30;
+  var thumbMax=cw-thumbW;
+  var newThumbLeft=Math.max(0,Math.min(thumbMax,_dragStartThumbLeft+deltaX));
+  var scrollRatio=thumbMax>0?newThumbLeft/thumbMax:0;
+  _tableWrap.scrollLeft=(sw-cw)*scrollRatio;
+}
+function endDrag(){
+  _isDragging=false;
+  document.removeEventListener('mousemove',onDrag);
+  document.removeEventListener('mouseup',endDrag);
+  document.removeEventListener('touchmove',onDrag);
+  document.removeEventListener('touchend',endDrag);
+}
+
+_tableWrap.addEventListener('scroll',syncFloatScroll);
+window.addEventListener('resize',syncFloatScroll);
+
+/* Click on track to jump */
+_floatTrack.addEventListener('click',function(e){
+  if(e.target===_floatThumb)return;
+  var trackRect=_floatTrack.getBoundingClientRect();
+  var clickX=e.clientX-trackRect.left;
+  var thumbW=parseFloat(_floatThumb.style.width)||30;
+  var table=document.getElementById('rentalTable');
+  var sw=table.scrollWidth;
+  var cw=_tableWrap.clientWidth;
+  var thumbMax=cw-thumbW;
+  var scrollRatio=Math.max(0,Math.min(1,(clickX-thumbW/2)/thumbMax));
+  _tableWrap.scrollLeft=(sw-cw)*scrollRatio;
+});
+
+/* ===== Sort by clicking column headers ===== */
+document.querySelectorAll('th.col-sort').forEach(function(th){
+  th.addEventListener('click',function(){
+    var field=th.dataset.sort;
+    var sortSelect=document.getElementById('sortFilter');
+    var current=sortSelect.value;
+    var newSort='';
+    if(current===field+'_desc'){
+      newSort=field+'_asc';
+    }else if(current===field+'_asc'){
+      newSort='';
+    }else{
+      newSort=field+'_desc';
+    }
+    sortSelect.value=newSort;
+    renderTable();
+  });
+});
+
+/* ===== Init ===== */
+initSkinFilters();
+loadStaticData();
+renderTable();
+initBeijingClock();
+/* Auto-fetch disabled: keep table empty as requested */
+</script>
+</body>
+</html>
