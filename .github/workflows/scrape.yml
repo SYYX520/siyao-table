@@ -28,10 +28,14 @@ jobs:
       - name: Install Chromium
         run: npx puppeteer browsers install chrome
 
+      - name: Find Chrome
+        run: |
+          CHROME_PATH=$(find /home/runner/.cache/puppeteer -name "chrome" -type f | head -1)
+          echo "Chrome found at: $CHROME_PATH"
+          echo "PUPPETEER_EXECUTABLE_PATH=$CHROME_PATH" >> $GITHUB_ENV
+
       - name: Scrape Tencent Docs
         run: node puppeteer-scraper.js
-        env:
-          PUPPETEER_EXECUTABLE_PATH: /root/.cache/puppeteer/chrome/*/chrome-linux64/chrome
 
       - name: Commit and Push
         run: |
