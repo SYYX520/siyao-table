@@ -178,11 +178,9 @@ tbody tr:hover .col-green-bg{background:#eefbe2!important}
   <h1 data-page-node-id="P6fbF8KHoNJxpb9HZQeway"><!--pnid:eIjYmrYQ0uT8adjA36OEZT-->🎯 司瑶的账号表格</h1>
   <div data-page-node-id="p9FPX9aK7LdsbIAwjsF07R" class="header-right">
     <div data-page-node-id="Qhwd8d5rxMXM6IqiQPhDsI" class="bj-clock" id="bjClock"><!--pnid:5kfN0EsV9MSw21I5LdAb7J-->--</div>
-    <button data-page-node-id="C4cC2TYyM0reTuLLTRWLEe" class="refresh-btn" id="refreshBtn" onclick="liveScrape(false)"><!--pnid:kRV7aI61MC70dSac11OvIK-->🔄 刷新数据</button>
+
   </div>
 </div>
-
-<div data-page-node-id="XiNaxINBa9VGrG5yq3Q2jx" class="progress-bar" id="progressBar" style="display:none"><div data-page-node-id="hChhMSyMNs85Vn7vy26Ox8" class="bar" id="progressBarFill"></div></div>
 
 <div data-page-node-id="vXgXEL4Br76DDUQLYIIk0c" class="filter-bar">
   <div data-page-node-id="F8JXjOvmjw7fYrzxWYmuG9" class="filter-group">
@@ -331,7 +329,7 @@ window.SCRAPED_RENTAL_DATA = window.SCRAPED_RENTAL_DATA || [];
 <script data-page-node-id="X3IFXSpY2NFklKtajCHMwJ" data-pnid-children="XJ3XY0Y8Mr4t1XxK4fXQm5">
 /* ===== Data & Maps ===== */
 var rentalData=[];
-var _scraping=false;
+
 
 var SKIN_MAP={1:"信条",2:"影锋",4:"北极星",5:"黑海",6:"怜悯",7:"赤霄",44:"暗星",46:"龙牙",53:"坠星者",54:"挽歌",
 8:"维什戴尔",9:"蚀金玫瑰",10:"水墨云图",11:"午夜邮差",12:"天际线",43:"凌霄戍卫",51:"威龙金皮-蛟龙特战队",52:"威龙金皮-吴彦祖",
@@ -370,19 +368,6 @@ var SKIN_CATEGORIES={
     {id:57,name:'AKM-群星(优)'},{id:58,name:'AKM-群星(极)'}
   ]
 };
-
-var REMOTE_SOURCES=[
-  {name:"xy商行",domain:"xy.jqka.cc"},
-  {name:"h8商行",domain:"h8.jqka.cc"},
-  {name:"91商行",domain:"91.jqka.cc"},
-  {name:"天稳商行",domain:"tj.jqka.cc"}
-];
-
-var CORS_PROXIES=[
-  function(url){return 'https://proxy.cors.sh/'+url},
-  function(url){return 'https://corsproxy.io/?url='+encodeURIComponent(url)},
-  function(url){return 'https://api.allorigins.win/raw?url='+encodeURIComponent(url)}
-];
 
 /* ===== DB (localStorage) ===== */
 var DB={
@@ -643,221 +628,6 @@ function renderTable(){
   syncFloatScroll();
 }
 
-/* ===== Live Scrape ===== */
-async function liveScrape(silent){
-  if(_scraping){if(!silent)toast('正在抓取中，请稍候...');return}
-  _scraping=true;
-  var btn=document.getElementById('refreshBtn');
-  var prog=document.getElementById('progressBar');
-  var progFill=document.getElementById('progressBarFill');
-  var status=document.getElementById('statusMsg');
-  if(btn){btn.disabled=true;btn.textContent='⏳ 抓取中...'}
-  if(prog){prog.style.display='block';progFill.style.width='10%'}
-
-  /* Try local server first */
-  try{
-    if(!silent&&status)status.textContent='正在刷新数据... 20%';
-    if(progFill)progFill.style.width='20%';
-    var resp=await fetch('/api/refresh',{method:'POST',headers:{'Content-Type':'application/json'}});
-    if(resp.ok){
-      var result=await resp.json();
-      if(result.code===200){
-        rentalData=result.data||[];
-        DB.set('rental',rentalData);
-        DB.set('rental_last_refresh',result.timestamp);
-        renderTable();
-        if(status)status.innerHTML='✅ '+result.timestamp+' | 在售'+result.stats.on_sale+'条'+(result.stats.sold?'，已售'+result.stats.sold+'条':'');
-        if(!silent)toast('已更新 '+result.stats.on_sale+' 条在售数据');
-        updateLastRefresh(result.timestamp);
-        if(btn){btn.disabled=false;btn.textContent='🔄 刷新数据'}
-        if(prog){progFill.style.width='100%';setTimeout(function(){prog.style.display='none'},800)}
-        _scraping=false;
-        return;
-      }
-    }
-    throw new Error('Server returned '+resp.status);
-  }catch(e){
-    console.log('Local server unavailable, trying remote...');
-  }
-
-  /* Try CORS proxy */
-  try{
-    if(!silent&&status)status.textContent='正在刷新数据... 30%';
-    if(progFill)progFill.style.width='30%';
-    var remoteResult=await liveScrapeRemote(silent,status,progFill);
-    if(btn){btn.disabled=false;btn.textContent='🔄 刷新数据'}
-    if(prog){progFill.style.width='100%';setTimeout(function(){prog.style.display='none'},800)}
-    _scraping=false;
-    return;
-  }catch(e){
-    console.log('Remote scrape failed:',e.message);
-  }
-
-  /* Fallback to static data */
-  if(typeof window.SCRAPED_RENTAL_DATA!=='undefined'&&window.SCRAPED_RENTAL_DATA.length){
-    rentalData=window.SCRAPED_RENTAL_DATA;
-    renderTable();
-    var onSale=rentalData.filter(function(r){return r.status==='在售'}).length;
-    if(status)status.textContent='已加载静态数据 '+rentalData.length+' 条（在售'+onSale+'）';
-    if(!silent)toast('已加载 '+rentalData.length+' 条数据');
-  }else{
-    if(status)status.textContent='❌ 抓取失败，请确保服务器运行或检查网络';
-    if(!silent)toast('抓取失败');
-  }
-  if(btn){btn.disabled=false;btn.textContent='🔄 刷新数据'}
-  if(prog){prog.style.display='none'}
-  _scraping=false;
-}
-
-async function _fetchViaProxy(proxyIdx,apiUrl,postBody){
-  var errors=[];
-  for(var i=proxyIdx;i<CORS_PROXIES.length;i++){
-    try{
-      var proxyUrl=CORS_PROXIES[i](apiUrl);
-      var opts={method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(postBody)};
-      var resp=await fetch(proxyUrl,opts);
-      if(!resp.ok){errors.push('proxy'+i+':HTTP'+resp.status);continue}
-      var data=await resp.json();
-      return data;
-    }catch(e){errors.push('proxy'+i+':'+e.message)}
-  }
-  throw new Error(errors.join('; '));
-}
-
-function _parseSkinFe(skinVal){
-  if(!skinVal||skinVal==='None'||skinVal===null)return [];
-  if(Array.isArray(skinVal))return skinVal;
-  if(typeof skinVal==='string')return skinVal.split(',').map(function(s){return s.trim()}).filter(Boolean);
-  return [];
-}
-function _skinNamesFe(ids){return ids.map(function(id){return SKIN_MAP[id]||('ID:'+id)})}
-function _parseEquiFe(equiJsonStr){
-  var result={helmet:0,armor:0,awm:0,red_bullet:0};
-  if(!equiJsonStr)return result;
-  try{
-    var data=typeof equiJsonStr==='string'?JSON.parse(equiJsonStr):equiJsonStr;
-    for(var k in data){
-      if(k==='-999')continue;
-      var name=data[k].name||'';
-      var count=data[k].count||0;
-      if(name.indexOf('6级头')>=0)result.helmet=count;
-      else if(name.indexOf('6级甲')>=0)result.armor=count;
-      else if(name.indexOf('AWM')>=0||name.indexOf('awm')>=0)result.awm=count;
-      else if(name.indexOf('红弹')>=0||name.indexOf('红色子弹')>=0)result.red_bullet=count;
-    }
-  }catch(e){}
-  return result;
-}
-
-function _formatAccountFe(acc,sourceName,domain){
-  var equi=_parseEquiFe(acc.game_buy_equi_json);
-  var timeRange='';
-  if(acc.game_time_range_start!=null&&acc.game_time_range_end!=null){
-    timeRange=acc.game_time_range_start+'点-'+acc.game_time_range_end+'点';
-  }
-  var rankVal=acc.game_rank||0;
-  var rankText=RANK_MAP[rankVal]||'无段位';
-  var loginVal=acc.login_type||0;
-  var loginText=LOGIN_MAP[loginVal]||'未知';
-  var safeBoxVal=acc.game_safe_box||0;
-  var safeBoxText=SAFE_BOX_MAP[safeBoxVal]||String(safeBoxVal);
-  var salePrice=acc.game_sale_price||0;
-  var deposit=acc.game_sale_deposit||0;
-  var equiRent=acc.game_sale_equi_rental_fee||0;
-  var total=Math.round((salePrice+equiRent)*100)/100;
-  var knifeIds=_parseSkinFe(acc.game_special_knife_skin);
-  var weaponIds=_parseSkinFe(acc.game_weapon_skin);
-  var goldIds=_parseSkinFe(acc.game_character_gold_skin);
-  var redIds=_parseSkinFe(acc.game_character_red_skin);
-  var nowStr=new Date().toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false});
-  return {
-    wid:acc.sale_user||'',kf:acc.kf||'',source:sourceName,domain:domain,status:'在售',
-    ratio:acc.game_sale_ratio||0,huff:acc.game_huff||0,
-    rank:rankText,rank_val:rankVal,level:acc.game_level||0,kd:acc.game_kd||0,
-    rent_days:acc.game_rent_days||0,time_range:timeRange,login_type:loginText,
-    login_region:acc.login_region||'',safe_box:safeBoxText,
-    stamina:acc.game_stamina||0,weight_capacity:acc.game_weight_capacity||0,
-    sale_price:salePrice,deposit:deposit,equi_rent:equiRent,total_price:total,
-    helmet:equi.helmet,armor:equi.armor,awm:equi.awm,red_bullet:equi.red_bullet,
-    knife_skin:knifeIds,weapon_skin:weaponIds,gold_skin:goldIds,red_skin:redIds,
-    knife_skin_names:_skinNamesFe(knifeIds),weapon_skin_names:_skinNamesFe(weaponIds),
-    gold_skin_names:_skinNamesFe(goldIds),red_skin_names:_skinNamesFe(redIds),
-    remark:acc.remark||'',is_special:acc.is_special_price||0,is_exp_card:acc.game_exp_card||0,
-    last_seen:nowStr,first_seen:nowStr
-  };
-}
-
-async function liveScrapeRemote(silent,statusEl,progFill){
-  var allAccounts=[];
-  var sourceResults=[];
-  var totalSources=REMOTE_SOURCES.length;
-  var FILTER_CONDITIONS=[
-    {label:'6格7体7负',game_safe_box:6,game_stamina:7,game_weight_capacity:7},
-    {label:'9格7体6负',game_safe_box:9,game_stamina:7,game_weight_capacity:6},
-    {label:'9格7体7负',game_safe_box:9,game_stamina:7,game_weight_capacity:7}
-  ];
-  var totalSteps=totalSources*FILTER_CONDITIONS.length;
-  var stepIdx=0;
-  for(var si=0;si<totalSources;si++){
-    var src=REMOTE_SOURCES[si];
-    var sourceAccounts=[];
-    var sourceOk=false;
-    for(var ci=0;ci<FILTER_CONDITIONS.length;ci++){
-      var cond=FILTER_CONDITIONS[ci];
-      stepIdx++;
-      var pct=Math.round(stepIdx/totalSteps*100);
-      if(statusEl)statusEl.textContent='正在刷新数据... '+pct+'%';
-      if(progFill)progFill.style.width=(30+Math.round(stepIdx/totalSteps*60))+'%';
-      var page=1;
-      var condAccounts=[];
-      var proxyIdx=0;
-      try{
-        while(page<=50){
-          var postBody={page:page,size:100,game_safe_box:cond.game_safe_box,game_stamina:cond.game_stamina,game_weight_capacity:cond.game_weight_capacity,sort_field:'game_sale_ratio',sort_order:'desc'};
-          var apiUrl='https://'+src.domain+'/api/game/account/list';
-          var data=await _fetchViaProxy(proxyIdx,apiUrl,postBody);
-          var items=data.data&&data.data.result?data.data.result:(data.data&&data.data.list?data.data.list:[]);
-          if(!items||!items.length)break;
-          for(var j=0;j<items.length;j++){
-            condAccounts.push(_formatAccountFe(items[j],src.name,src.domain));
-          }
-          var totalPages=data.data&&data.data.totalPages?data.data.totalPages:1;
-          if(page>=totalPages)break;
-          page++;
-        }
-        sourceAccounts=sourceAccounts.concat(condAccounts);
-        sourceOk=true;
-      }catch(e){
-        /* condition failed, try next */
-      }
-    }
-    var seen={};
-    var unique=sourceAccounts.filter(function(a){if(seen[a.wid])return false;seen[a.wid]=true;return true});
-    unique.sort(function(a,b){return (b.ratio||0)-(a.ratio||0)});
-    allAccounts=allAccounts.concat(unique);
-    sourceResults.push({name:src.name,status:sourceOk?'ok':'error',count:unique.length,error:sourceOk?'':'抓取失败'});
-  }
-  if(!allAccounts.length)throw new Error('所有网站抓取失败');
-
-  rentalData=allAccounts;
-  DB.set('rental',rentalData);
-  var nowStr=new Date().toLocaleString('zh-CN',{timeZone:'Asia/Shanghai',hour12:false});
-  DB.set('rental_last_refresh',nowStr);
-
-  var onSale=rentalData.filter(function(r){return r.status==='在售'}).length;
-
-  if(statusEl)statusEl.innerHTML='✅ '+nowStr+' | 在售'+onSale+'条';
-  renderTable();
-  updateLastRefresh(nowStr);
-  if(!silent)toast('已抓取 '+onSale+' 条在售数据');
-  return true;
-}
-
-function updateLastRefresh(ts){
-  var el=document.getElementById('statLastUpdate');
-  if(el&&ts)el.textContent=ts;
-}
-
 /* ===== Beijing Clock ===== */
 function initBeijingClock(){
   var el=document.getElementById('bjClock');
@@ -984,8 +754,6 @@ initSkinFilters();
 loadStaticData();
 renderTable();
 initBeijingClock();
-/* 自动抓取实时数据 - 已禁用 */
-/* liveScrape(true); */
 </script>
 </body>
 </html>
